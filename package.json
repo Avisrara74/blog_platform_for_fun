@@ -1,6 +1,6 @@
 {
   "homepage": "http://avisrara74.github.io/jm_blog",
-  "name": "jm-blog-platform",
+  "name": "jm_blog",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
