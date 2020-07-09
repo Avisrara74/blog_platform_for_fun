@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import {
   BrowserRouter as Router,
   Switch,
-  Route,
+  Route, Redirect,
 } from 'react-router-dom';
 import { signInSuccess } from '../redux/actions/auth';
 import PrivateRoute from '../react-router/private-route';
@@ -105,6 +105,14 @@ const App = (props) => {
                 <Article />
               </ContentBody>
             </Route>
+
+            <Route path="*">
+              <ContentBody>
+                <ArticlesList />
+              </ContentBody>
+            </Route>
+            
+            <Redirect to={mainUrl} />
           </Switch>
         </ContentWrapper>
       </Router>
