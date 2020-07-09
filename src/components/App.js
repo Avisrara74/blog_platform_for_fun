@@ -105,12 +105,6 @@ const App = (props) => {
                 <Article />
               </ContentBody>
             </Route>
-
-            <Route path="*">
-              <ContentBody>
-                <ArticlesList />
-              </ContentBody>
-            </Route>
           </Switch>
         </ContentWrapper>
       </Router>
