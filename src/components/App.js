@@ -64,7 +64,7 @@ const App = (props) => {
         </ContentHeader>
         <ContentWrapper>
           <Switch>
-            <Route exact path={mainUrl}>
+            <Route exact path={process.env.PUBLIC_URL + mainUrl}>
               <ContentBody>
                 <ArticlesList />
               </ContentBody>
@@ -111,7 +111,7 @@ const App = (props) => {
                 <ArticlesList />
               </ContentBody>
             </Route>
-            
+
             <Redirect to={mainUrl} />
           </Switch>
         </ContentWrapper>
