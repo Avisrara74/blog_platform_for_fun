@@ -64,7 +64,7 @@ const App = (props) => {
         </ContentHeader>
         <ContentWrapper>
           <Switch>
-            <Route exact path={mainUrl}>
+            <Route exact path={mainUrl} component={ArticlesList}>
               <ContentBody>
                 <ArticlesList />
               </ContentBody>
@@ -106,6 +106,7 @@ const App = (props) => {
               </ContentBody>
             </Route>
 
+            <Redirect to={mainUrl} />
 
           </Switch>
         </ContentWrapper>
