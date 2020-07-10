@@ -64,7 +64,7 @@ const App = (props) => {
         </ContentHeader>
         <ContentWrapper>
           <Switch>
-            <Route exact path={process.env.PUBLIC_URL + mainUrl}>
+            <Route exact path={mainUrl}>
               <ContentBody>
                 <ArticlesList />
               </ContentBody>
