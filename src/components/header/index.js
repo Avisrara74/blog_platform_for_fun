@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { connect } from 'react-redux';
 import propTypes from 'prop-types';
@@ -15,10 +15,17 @@ import { logOutSuccess as logOutProcess } from '../../redux/actions/auth';
 
 const mapStateToProps = (state) => {
   const { isAuthorized, username, userProfileImage } = state.userData;
+  const userImageUrl = () => {
+    if (typeof userProfileImage === 'string' && userProfileImage) {
+      return userProfileImage;
+    }
+    return userDefaultImgUrl;
+  };
+
   return {
     isAuthorized,
     username,
-    userProfileImage: (userProfileImage === undefined) ? userDefaultImgUrl : userProfileImage,
+    userProfileImage: userImageUrl(),
   };
 };
 
@@ -31,9 +38,17 @@ const Header = (props) => {
     isAuthorized, username, userProfileImage, logOutSuccess,
   } = props;
 
+  const renderUserImg = () => (
+    userProfileImage
+  );
+
   const handleOnLogOut = () => {
     logOutSuccess();
   };
+
+  useEffect(() => {
+    renderUserImg();
+  }, [isAuthorized, userProfileImage]);
 
   const renderHeaderMenu = () => {
     // рендер если пользователь авторизирован
@@ -49,7 +64,7 @@ const Header = (props) => {
           <HeaderEditProfile>
             <NavLink to={editProfileUrl}>
               <HeaderUsername>{username}</HeaderUsername>
-              <ArticlesUserImage src={userProfileImage} />
+              <ArticlesUserImage src={renderUserImg()} />
             </NavLink>
           </HeaderEditProfile>
 

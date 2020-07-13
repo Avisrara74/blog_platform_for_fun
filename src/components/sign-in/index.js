@@ -48,7 +48,7 @@ const SignIn = (props) => {
     const { email, password } = formik.values;
     const userData = {
       user: {
-        email,
+        email: email.toLowerCase(),
         password,
       },
     };

@@ -61,15 +61,18 @@ const ArticlesList = (props) => {
     setPageSize(pageSize);
   };
 
-  const renderPagination = (total) => (
-    <Pagination
-      size="small"
-      total={total}
-      pageSize={5} // по сколько айтемов на странице показываем
-      showSizeChanger={false}
-      onChange={handleOnChangePagination}
-    />
-  );
+  const renderPagination = (total) => {
+    if (total === 0) return null;
+    return (
+      <Pagination
+        size="small"
+        total={total}
+        pageSize={5} // по сколько айтемов на странице показываем
+        showSizeChanger={false}
+        onChange={handleOnChangePagination}
+      />
+    );
+  };
 
   useEffect(() => {
     // получаем посты пока они есть и убираем дублирование запроса если создан новый пост
