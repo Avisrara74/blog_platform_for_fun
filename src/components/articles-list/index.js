@@ -76,7 +76,7 @@ const ArticlesList = (props) => {
 
     // обновляем посты после создания поста / редактирования / удаления
     if (isNewArticleCreated || isArticleEdited || isArticleRemoved) refreshArticles();
-  }, [isArticlesReady, isNewArticleCreated, isArticleEdited]);
+  }, [isArticlesReady, isNewArticleCreated, isArticleEdited, articles]);
 
   return (
     <ArticlesWrapper>

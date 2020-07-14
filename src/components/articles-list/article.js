@@ -64,7 +64,7 @@ const Article = (props) => {
       return false;
     }
     setTimerIdChangeLike(clearTimeout(timerIdChangeLike));
-    await refreshLikesUI(articleLikeInfo.id);
+    await refreshLikesUI(articleLikeInfo.slug);
 
     // пользователь может припадочно жать на кнопку лайка
     // поэтому отправляем лайк на сервер только через полсекунды

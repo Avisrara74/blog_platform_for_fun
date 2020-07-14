@@ -73,6 +73,6 @@ export const userData = handleActions({
     removeItemFromLocalstorage('username');
     removeItemFromLocalstorage('userProfileImage');
     removeItemFromLocalstorage('email');
-    return userDataInitial;
+    return userDataInitial();
   },
 }, userDataInitial());

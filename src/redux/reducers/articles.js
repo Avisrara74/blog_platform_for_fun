@@ -6,7 +6,7 @@ export const articles = handleActions({
     return [...action.payload];
   },
   [articlesActions.refreshLikeInArticlesArray](state, { payload }) {
-    const currentArticleIndex = state.findIndex((el) => el.id === payload);
+    const currentArticleIndex = state.findIndex((el) => el.slug === payload);
     const currentArticle = state[currentArticleIndex];
     const changedArticle = {
       ...currentArticle,
@@ -35,6 +35,10 @@ export const articles = handleActions({
 export const oneArticle = handleActions({
   [articlesActions.getOneArticleSuccess](state, action) {
     return { ...action.payload };
+  },
+  [articlesActions.refreshCurrentArticleLike](state) {
+    const favoritesCount = (state.favorited) ? state.favoritesCount - 1 : state.favoritesCount + 1;
+    return { ...state, favorited: !state.favorited, favoritesCount };
   },
 }, {});
 

@@ -77,8 +77,8 @@ export const addLike = (slug) => async (dispatch) => {
 };
 
 export const refreshLikeInArticlesArray = createAction('REFRESH_LIKE_IN_ARTICLES_ARRAY');
-export const refreshLikesUI = (id) => async (dispatch) => {
-  dispatch(refreshLikeInArticlesArray(id));
+export const refreshLikesUI = (slug) => async (dispatch) => {
+  dispatch(refreshLikeInArticlesArray(slug));
 };
 
 export const removeLikeRequest = createAction('REMOVE_LIKE_REQUEST');
@@ -93,6 +93,11 @@ export const removeLike = (slug) => async (dispatch) => {
     dispatch(removeLikeFailure());
     throw error;
   }
+};
+
+export const refreshCurrentArticleLike = createAction('REFRESH_CURRENT_ARTICLE_LIKE');
+export const refreshCurrentArticleLikeUI = () => async (dispatch) => {
+  dispatch(refreshCurrentArticleLike());
 };
 
 // удалить пост
