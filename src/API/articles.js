@@ -1,43 +1,30 @@
 import axios from 'axios';
 import { uniqueId } from 'lodash';
 import * as routes from './routes';
-import { checkFieldErrors, networkErrorCheck, mainRequestHandler } from './index';
+import { networkErrorCheck, mainRequestHandler } from './index';
 
 axios.interceptors.request.use(
   (req) => mainRequestHandler(req),
 );
 
-// получаем список статей частями (подробнее см. redux/actions/articles getArticles)
-export const getArticles = async (articlesPerRequest, articlesCounter) => {
-  // counter увеличивается на кол-во полученных статей после каждого вызова функции из экшена
-  const localRequestHandler = (req) => {
-    req.params = { limit: articlesPerRequest, offset: articlesCounter };
-    return req;
-  };
-
-  // инициализируем чтобы удалить после запроса
-  const requestInterceptor = axios.interceptors.request.use(
-    (req) => localRequestHandler(req),
-  );
-
+export const getArticles = async (articlesPerRequest, offset) => {
   try {
-    const response = await axios.get(routes.articlesUrl);
+    const response = await axios({
+      url: routes.articlesUrl,
+      params: { limit: articlesPerRequest, offset },
+      method: 'GET',
+    });
 
-    const { articles, articlesCount } = response.data;
+    const { articles } = response.data;
 
     const initialArticlesById = articles.map((el) => ({
       ...el,
       id: uniqueId(),
       tagList: el.tagList.map((tagName) => ({ id: uniqueId(), title: tagName })),
     }));
-    const articlesArray = [...initialArticlesById];
-
-    // удаляем интерцептор
-    axios.interceptors.request.eject(requestInterceptor);
 
     return {
-      articles: articlesArray,
-      articlesCount,
+      articles: initialArticlesById,
     };
   } catch (error) {
     networkErrorCheck(error);
@@ -46,7 +33,8 @@ export const getArticles = async (articlesPerRequest, articlesCounter) => {
 };
 
 // создание поста
-export const createArticle = async (articleBody, formik) => {
+// eslint-disable-next-line consistent-return
+export const createArticle = async (articleBody) => {
   try {
     const response = await axios.post(routes.articlesUrl, articleBody);
 
@@ -60,9 +48,8 @@ export const createArticle = async (articleBody, formik) => {
   } catch (error) {
     networkErrorCheck(error);
     if (error.response.status === 422) {
-      checkFieldErrors(error.response.data.errors, formik);
+      throw error;
     }
-    throw error;
   }
 };
 
@@ -86,35 +73,36 @@ export const getOneArticle = async (queryParam) => {
 };
 
 // изменить пост
-export const editArticle = async (articleBody, queryParam, formik) => {
+export const editArticle = async (articleBody, queryParam) => {
   try {
     const url = routes.oneArticleUrl(queryParam);
     await axios.put(url, articleBody);
   } catch (error) {
     networkErrorCheck(error);
     if (error.response.status === 422) {
-      checkFieldErrors(error.response.data.errors, formik);
+      throw error;
     }
   }
 };
 
 // лайкнуть пост
 // eslint-disable-next-line consistent-return
-export const addLike = async (likeBody) => {
-  const { id, slug, favorited } = likeBody;
+export const addLike = async (slug) => {
   try {
-    // лайк или дизлайк в зависимости от текущего состояния
-    const response = (favorited === true)
-      ? await axios.delete(routes.changeLikeUrl(slug))
-      : await axios.post(routes.changeLikeUrl(slug));
-
-    return {
-      isFavorited: response.data.article.favorited,
-      id,
-    };
+    await axios.post(routes.changeLikeUrl(slug));
   } catch (error) {
     // eslint-disable-next-line no-console
     console.log(error.response);
+  }
+};
+
+export const removeLike = async (slug) => {
+  try {
+    await axios.delete(routes.changeLikeUrl(slug));
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.log(error.response);
+    throw error;
   }
 };
 

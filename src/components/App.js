@@ -1,12 +1,9 @@
-import React, { useEffect } from 'react';
-import propTypes from 'prop-types';
-import { connect } from 'react-redux';
+import React from 'react';
 import {
   BrowserRouter as Router,
   Switch,
   Route, Redirect,
 } from 'react-router-dom';
-import { signInSuccess } from '../redux/actions/auth';
 import PrivateRoute from '../react-router/private-route';
 import AuthRoute from '../react-router/auth-route';
 import Header from './header';
@@ -30,99 +27,62 @@ import {
   editProfileUrl,
 } from '../routes';
 
-const mapStateToProps = (state) => {
-  const { userData, articles } = state;
-  const props = {
-    isAuthorized: userData.isAuthorized,
-    userData,
-    articles,
-  };
-  return props;
-};
+const App = () => (
+  <MainWrapper>
+    <Router>
+      <ContentHeader>
+        <Header />
+      </ContentHeader>
+      <ContentWrapper>
+        <Switch>
+          <Route exact path={mainUrl} component={ArticlesList}>
+            <ContentBody>
+              <ArticlesList />
+            </ContentBody>
+          </Route>
 
-const App = (props) => {
-  const { dispatch, isAuthorized } = props;
-  const authorizationCheck = () => {
-    if (localStorage.token === undefined) return;
-    dispatch(signInSuccess({
-      isAuthorized: true,
-      token: localStorage.token,
-      username: localStorage.username,
-      userProfileImage: localStorage.userProfileImage,
-    }));
-  };
+          <AuthRoute path={signInUrl}>
+            <ContentAuth>
+              <SignIn />
+            </ContentAuth>
+          </AuthRoute>
 
-  useEffect(() => {
-    if (!isAuthorized) authorizationCheck();
-  }, [isAuthorized]);
+          <AuthRoute path={signUpUrl}>
+            <ContentAuth>
+              <SignUp />
+            </ContentAuth>
+          </AuthRoute>
 
-  return (
-    <MainWrapper>
-      <Router>
-        <ContentHeader>
-          <Header />
-        </ContentHeader>
-        <ContentWrapper>
-          <Switch>
-            <Route exact path={mainUrl} component={ArticlesList}>
-              <ContentBody>
-                <ArticlesList />
-              </ContentBody>
-            </Route>
+          <PrivateRoute path={editProfileUrl}>
+            <ContentAuth>
+              <EditProfile />
+            </ContentAuth>
+          </PrivateRoute>
 
-            <AuthRoute path={signInUrl}>
-              <ContentAuth>
-                <SignIn />
-              </ContentAuth>
-            </AuthRoute>
+          <PrivateRoute path={createArticleUrl}>
+            <ContentBody>
+              <CreateArticle />
+            </ContentBody>
+          </PrivateRoute>
 
-            <AuthRoute path={signUpUrl}>
-              <ContentAuth>
-                <SignUp />
-              </ContentAuth>
-            </AuthRoute>
+          <Route path={editArticleUrl()}>
+            <ContentBody>
+              <EditArticle />
+            </ContentBody>
+          </Route>
 
-            <PrivateRoute path={editProfileUrl}>
-              <ContentAuth>
-                <EditProfile />
-              </ContentAuth>
-            </PrivateRoute>
+          <Route path={articleUrl()}>
+            <ContentBody>
+              <Article />
+            </ContentBody>
+          </Route>
 
-            <PrivateRoute path={createArticleUrl}>
-              <ContentBody>
-                <CreateArticle />
-              </ContentBody>
-            </PrivateRoute>
+          <Redirect to={mainUrl} />
 
-            <Route path={editArticleUrl()}>
-              <ContentBody>
-                <EditArticle />
-              </ContentBody>
-            </Route>
+        </Switch>
+      </ContentWrapper>
+    </Router>
+  </MainWrapper>
+);
 
-            <Route path={articleUrl()}>
-              <ContentBody>
-                <Article />
-              </ContentBody>
-            </Route>
-
-            <Redirect to={mainUrl} />
-
-          </Switch>
-        </ContentWrapper>
-      </Router>
-    </MainWrapper>
-  );
-};
-
-App.propTypes = {
-  dispatch: propTypes.func,
-  isAuthorized: propTypes.bool,
-};
-
-App.defaultProps = {
-  dispatch: null,
-  isAuthorized: false,
-};
-
-export default connect(mapStateToProps, null)(App);
+export default App;

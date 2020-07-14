@@ -22,6 +22,7 @@ import {
   FormItemTagsTitle,
   FormItemTag,
 } from '../../styled-components';
+import { checkFieldErrors } from '../../API';
 
 const formSubmitButtonStyles = {
   height: 40,
@@ -103,7 +104,12 @@ const EditArticle = (props) => {
         title, description, body, tagList: tags,
       },
     };
-    editArticle(articleBody, queryParam, formik);
+
+    try {
+      await editArticle(articleBody, queryParam);
+    } catch (error) {
+      checkFieldErrors(error.response.data.errors, formik);
+    }
   };
 
   const history = useHistory();
@@ -114,8 +120,8 @@ const EditArticle = (props) => {
   const formik = useFormik({
     initialValues: formikInicialValues,
     validationSchema: formikValidationSchema,
-    onSubmit: () => {
-      handleOnEditArticle(formik);
+    onSubmit: async () => {
+      await handleOnEditArticle(formik);
     },
   });
 
@@ -273,7 +279,6 @@ EditArticle.propTypes = {
   isArticleChanged: propTypes.bool,
   username: propTypes.string,
   getOneArticle: propTypes.func,
-  oneArticle: propTypes.objectOf(propTypes.object),
   isOneArticleReady: propTypes.bool,
   editArticle: propTypes.func,
 };

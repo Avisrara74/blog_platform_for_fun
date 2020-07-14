@@ -18,6 +18,7 @@ import {
 import { signIn as signInProcess } from '../../redux/actions/auth';
 import { signUpUrl, mainUrl } from '../../routes';
 import { renderErrorMessage } from '../../helper';
+import { signInErrorsCheck } from '../../API';
 
 const formikInitialValues = {
   email: '',
@@ -44,7 +45,7 @@ const SignIn = (props) => {
     history.push(mainUrl);
   };
 
-  const handleOnAuthorizationUser = (formik) => {
+  const handleOnAuthorizationUser = async (formik) => {
     const { email, password } = formik.values;
     const userData = {
       user: {
@@ -52,7 +53,11 @@ const SignIn = (props) => {
         password,
       },
     };
-    signIn(userData, formik);
+    try {
+      await signIn(userData);
+    } catch (error) {
+      signInErrorsCheck(error.response.data.errors, formik);
+    }
   };
 
   const formik = useFormik({

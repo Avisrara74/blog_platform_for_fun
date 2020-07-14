@@ -19,7 +19,7 @@ const mapStateToProps = (state) => {
   const props = {
     articles,
     isArticlesReady: getArticlesState === 'finished',
-    isRequestProcessed: getArticlesState === 'processed',
+    isRequestProcessed: getArticlesState === 'requested',
     isNewArticleCreated: createArticleState === 'finished',
     isArticleEdited: editArticleState === 'finished',
     isArticleRemoved: removeArticleState === 'finished',
@@ -40,33 +40,28 @@ const ArticlesList = (props) => {
     isArticleRemoved,
   } = props;
 
-  const [currentPageNumber, setCurrentPageNumber] = useState(1);
-  const [currentPageSize, setPageSize] = useState(5);
-
+  const [currentPage, setCurrentPage] = useState(1);
   const getArticlesRequest = async () => {
-    await getArticles();
+    await getArticles(5, currentPage * 5 - 5);
   };
 
-  const renderArticles = (pageNumber, pageSize) => {
-    const from = pageNumber * pageSize - pageSize;
-    const to = pageNumber * pageSize;
-    // показываем по 5 постов
-    const currentArticlesArray = Array.from(articles).slice(from, to);
-
-    return <Article articles={currentArticlesArray} />;
+  const renderArticles = () => {
+    if (isRequestProcessed) return renderLoader();
+    return <Article articles={articles} />;
   };
 
   const handleOnChangePagination = (value, pageSize) => {
-    setCurrentPageNumber(value);
-    setPageSize(pageSize);
+    setCurrentPage(value);
+    getArticles(pageSize, value * pageSize - pageSize);
   };
 
-  const renderPagination = (total) => {
-    if (total === 0) return null;
+  const renderPagination = () => {
+    if (isRequestProcessed) return null;
     return (
       <Pagination
         size="small"
-        total={total}
+        total={500}
+        current={currentPage}
         pageSize={5} // по сколько айтемов на странице показываем
         showSizeChanger={false}
         onChange={handleOnChangePagination}
@@ -75,7 +70,6 @@ const ArticlesList = (props) => {
   };
 
   useEffect(() => {
-    // получаем посты пока они есть и убираем дублирование запроса если создан новый пост
     if (!isArticlesReady && !isNewArticleCreated && !isArticleEdited) {
       getArticlesRequest();
     }
@@ -87,13 +81,11 @@ const ArticlesList = (props) => {
   return (
     <ArticlesWrapper>
       <ArticlesItemsWrapper>
-        {(isRequestProcessed || isArticlesReady)
-          ? renderArticles(currentPageNumber, currentPageSize)
-          : renderLoader()}
+        {renderArticles()}
       </ArticlesItemsWrapper>
 
       <PaginationWrapper>
-        {renderPagination(articles.length)}
+        {renderPagination()}
       </PaginationWrapper>
     </ArticlesWrapper>
   );

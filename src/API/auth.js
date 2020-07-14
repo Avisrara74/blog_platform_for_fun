@@ -1,10 +1,8 @@
 import axios from 'axios';
 import * as routes from './routes';
 import {
-  checkFieldErrors,
   mainRequestHandler,
   networkErrorCheck,
-  signInErrorsCheck,
 } from './index';
 
 axios.interceptors.request.use(
@@ -12,7 +10,8 @@ axios.interceptors.request.use(
 );
 
 // авторизация
-export const signInProcess = async (userData, formik) => {
+// eslint-disable-next-line consistent-return
+export const signInProcess = async (userData) => {
   try {
     const response = await axios.post(routes.signInUrl, userData);
     const responseUserData = response.data.user;
@@ -21,26 +20,25 @@ export const signInProcess = async (userData, formik) => {
       token: responseUserData.token,
       isAuthorized: true,
       userProfileImage: responseUserData.image,
+      email: responseUserData.email,
     };
   } catch (error) {
     networkErrorCheck(error);
     if (error.response.status === 422) {
-      signInErrorsCheck(error.response.data.errors, formik);
+      throw error;
     }
-    throw error;
   }
 };
 
 // регистрация
-export const signUpProcess = async (newUser, formik) => {
+export const signUpProcess = async (newUser) => {
   try {
     await axios.post(routes.signUpUrl, newUser);
     alert('Регистрация прошла успешно'); // eslint-disable-line no-alert
   } catch (error) {
     networkErrorCheck(error);
     if (error.response.status === 422) {
-      checkFieldErrors(error.response.data.errors, formik);
+      throw error;
     }
-    throw error;
   }
 };

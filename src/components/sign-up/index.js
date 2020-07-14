@@ -20,6 +20,7 @@ import {
   FormSubmitButtonStyles,
 } from '../../styled-components';
 import { renderErrorMessage } from '../../helper';
+import { checkFieldErrors } from '../../API';
 
 const formikInicialValues = {
   username: '',
@@ -95,7 +96,12 @@ const SignUp = (props) => {
         password,
       },
     };
-    signUp(newUser, formik);
+
+    try {
+      await signUp(newUser);
+    } catch (error) {
+      checkFieldErrors(error.response.data.errors, formik);
+    }
   };
 
   const formik = useFormik({

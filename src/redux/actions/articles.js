@@ -1,30 +1,14 @@
 import { createAction } from 'redux-actions';
 import * as api from '../../API/articles';
 
-export const getArticlesProcess = createAction('GET_ARTICLES_PROCESS');
+// получить посты в зависимости от страницы в пагинации
+export const getArticlesRequest = createAction('GET_ARTICLES_REQUEST');
 export const getArticlesSuccess = createAction('GET_ARTICLES_SUCCESS');
-// при запросе на сервер статьи возвращаются пачками размером articlesPerRequest
-// в ответе приходит { articles: [], articlesCount: value }
-// массив articles диспатчим, чтобы не ждать от сервера все статьи(вдруг их тысячи)
-// Каждую итерацию сравниваем уже полученное число статей и кол-во на сервере
-// если на сервере статьи еще есть, то на фоне делаем запросы для их получения
-export const getArticles = () => async (dispatch) => {
-  let currentArticlesCounter = 0;
-
-  const fetchArticles = async (articlesPerRequest = 100, counter = 0) => {
-    const response = await api.getArticles(articlesPerRequest, counter);
-    const { articles, articlesCount } = response;
-    dispatch(getArticlesProcess(articles));
-
-    currentArticlesCounter += articles.length;
-    if (currentArticlesCounter < articlesCount) {
-      await fetchArticles(articlesPerRequest, currentArticlesCounter);
-    }
-    if (currentArticlesCounter === articlesCount) {
-      dispatch(getArticlesSuccess());
-    }
-  };
-  await fetchArticles();
+export const getArticles = (articlesPerRequest = 5, offset = 0) => async (dispatch) => {
+  dispatch(getArticlesRequest());
+  const response = await api.getArticles(articlesPerRequest, offset);
+  const { articles } = response;
+  dispatch(getArticlesSuccess(articles));
 };
 
 // создать пост
@@ -32,13 +16,14 @@ export const createArticleRequest = createAction('CREATE_ARTICLE_REQUEST');
 export const createArticleSuccess = createAction('CREATE_ARTICLE_SUCCESS');
 export const createArticleFailure = createAction('CREATE_ARTICLE_FAILURE');
 
-export const createArticle = (articleBody, formik) => async (dispatch) => {
+export const createArticle = (articleBody) => async (dispatch) => {
   dispatch(createArticleRequest());
   try {
-    await api.createArticle(articleBody, formik);
+    await api.createArticle(articleBody);
     dispatch(createArticleSuccess());
   } catch (error) {
     dispatch(createArticleFailure());
+    throw error;
   }
 };
 
@@ -65,10 +50,10 @@ export const editArticleRequest = createAction('EDIT_ARTICLE_REQUEST');
 export const editArticleSuccess = createAction('EDIT_ARTICLE_SUCCESS');
 export const editArticleFailure = createAction('EDIT_ARTICLE_FAILURE');
 
-export const editArticle = (articleData, queryParam, formik) => async (dispatch) => {
+export const editArticle = (articleData, queryParam) => async (dispatch) => {
   dispatch(editArticleRequest());
   try {
-    await api.editArticle(articleData, queryParam, formik);
+    await api.editArticle(articleData, queryParam);
     dispatch(editArticleSuccess());
   } catch (error) {
     dispatch(editArticleFailure);
@@ -80,22 +65,32 @@ export const editArticle = (articleData, queryParam, formik) => async (dispatch)
 export const addLikeRequest = createAction('ADD_LIKE_REQUEST');
 export const addLikeSuccess = createAction('ADD_LIKE_SUCCESS');
 export const addLikeFailure = createAction('ADD_LIKE_FAILURE');
-
-export const refreshLikeInArticlesArray = createAction('REFRESH_LIKE_IN_ARTICLES_ARRAY');
-
-export const addLike = (likeBody) => async (dispatch) => {
-  if (!likeBody.isRepeatedRequest) {
-    dispatch(refreshLikeInArticlesArray(likeBody.id));
-  }
-
-  // запрещаем отправку на сервер если лайк уже отправлен
-  if (likeBody.isAlreadyRequested) return;
-  dispatch(addLikeRequest(likeBody.id));
+export const addLike = (slug) => async (dispatch) => {
+  dispatch(addLikeRequest());
   try {
-    const response = await api.addLike(likeBody);
-    dispatch(addLikeSuccess(response));
+    await api.addLike(slug);
+    dispatch(addLikeSuccess());
   } catch (error) {
     dispatch(addLikeFailure());
+    throw error;
+  }
+};
+
+export const refreshLikeInArticlesArray = createAction('REFRESH_LIKE_IN_ARTICLES_ARRAY');
+export const refreshLikesUI = (id) => async (dispatch) => {
+  dispatch(refreshLikeInArticlesArray(id));
+};
+
+export const removeLikeRequest = createAction('REMOVE_LIKE_REQUEST');
+export const removeLikeSuccess = createAction('REMOVE_LIKE_SUCCESS');
+export const removeLikeFailure = createAction('REMOVE_LIKE_FAILURE');
+export const removeLike = (slug) => async (dispatch) => {
+  dispatch(removeLikeRequest());
+  try {
+    await api.removeLike(slug);
+    dispatch(removeLikeSuccess());
+  } catch (error) {
+    dispatch(removeLikeFailure());
     throw error;
   }
 };

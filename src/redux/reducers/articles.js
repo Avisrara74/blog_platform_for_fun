@@ -1,47 +1,46 @@
 import { handleActions } from 'redux-actions';
-import * as userActions from '../actions/user';
 import * as articlesActions from '../actions/articles';
-import * as authActions from '../actions/auth';
 
-export const signUpState = handleActions({
-  [authActions.signUpRequest]() {
-    return 'requested';
+export const articles = handleActions({
+  [articlesActions.getArticlesSuccess](state, action) {
+    return [...action.payload];
   },
-  [authActions.signUpFailure]() {
-    return 'failed';
+  [articlesActions.refreshLikeInArticlesArray](state, { payload }) {
+    const currentArticleIndex = state.findIndex((el) => el.id === payload);
+    const currentArticle = state[currentArticleIndex];
+    const changedArticle = {
+      ...currentArticle,
+      favorited: !currentArticle.favorited,
+      favoritesCount: (currentArticle.favorited)
+        ? currentArticle.favoritesCount - 1
+        : currentArticle.favoritesCount + 1,
+    };
+    return [
+      ...state.slice(0, currentArticleIndex),
+      changedArticle,
+      ...state.slice(currentArticleIndex + 1),
+    ];
   },
-  [authActions.signUpSuccess]() {
-    return 'finished';
+  [articlesActions.createArticleSuccess]() {
+    return [];
   },
-}, 'none');
+  [articlesActions.editArticleSuccess]() {
+    return [];
+  },
+  [articlesActions.removeArticleSuccess]() {
+    return [];
+  },
+}, []);
 
-export const signInState = handleActions({
-  [authActions.signInRequest]() {
-    return 'requested';
+export const oneArticle = handleActions({
+  [articlesActions.getOneArticleSuccess](state, action) {
+    return { ...action.payload };
   },
-  [authActions.signInFailure]() {
-    return 'failed';
-  },
-  [authActions.signInSuccess]() {
-    return 'finished';
-  },
-}, 'none');
-
-export const editUserProfileState = handleActions({
-  [userActions.editUserProfileRequest]() {
-    return 'requested';
-  },
-  [userActions.editUserProfileFailure]() {
-    return 'failed';
-  },
-  [userActions.editUserProfileSuccess]() {
-    return 'finished';
-  },
-}, 'none');
+}, {});
 
 export const getArticlesState = handleActions({
-  [articlesActions.getArticlesProcess]() {
-    return 'processed';
+  [articlesActions.getArticlesRequest]() {
+    return 'requested';
   },
   [articlesActions.refreshArticlesRequest]() {
     return 'requested';
@@ -87,22 +86,26 @@ export const editArticleState = handleActions({
   },
 }, 'none');
 
-export const addLikeRequestState = handleActions({
-  [articlesActions.addLikeRequest](state, action) {
-    // id лайков запрос на изменение которых уже отправлен
-    return [...state, action.payload];
+export const addLikeState = handleActions({
+  [articlesActions.addLikeRequest]() {
+    return 'requested';
   },
   [articlesActions.addLikeFailure]() {
     return 'failed';
   },
-  [articlesActions.addLikeSuccess](state, action) {
-    // удаляем id лайка после завершения реквеста
-    return [...state.filter((el) => el !== action.payload.id)];
-  },
-}, []);
-
-export const localLikesStateProcess = handleActions({
   [articlesActions.addLikeSuccess]() {
+    return 'finished';
+  },
+}, 'none');
+
+export const removeLikeState = handleActions({
+  [articlesActions.removeLikeRequest]() {
+    return 'requested';
+  },
+  [articlesActions.removeLikeFailure]() {
+    return 'failed';
+  },
+  [articlesActions.removeLikeSuccess]() {
     return 'finished';
   },
 }, 'none');

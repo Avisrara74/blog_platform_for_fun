@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { useHistory } from 'react-router';
@@ -22,85 +22,53 @@ const linkStyles = {
   color: 'rgba(0, 0, 0, 0.75)',
 };
 const mapStateToProps = (state) => {
-  const { likesStateOnServer, addLikeRequestState, localLikesStateProcess } = state;
-
   const { isAuthorized } = state.userData;
-  const isLikeChangedOnServer = localLikesStateProcess === 'finished';
 
   return {
-    likesStateOnServer, isLikeChangedOnServer, addLikeRequestState, isAuthorized,
+    isAuthorized,
   };
 };
 
 const actionCreator = {
   addLike: actions.addLike,
+  removeLike: actions.removeLike,
+  refreshLikesUI: actions.refreshLikesUI,
 };
 
 const Article = (props) => {
   const {
-    articles,
-    addLike, addLikeRequestState,
+    articles, refreshLikesUI,
+    addLike, removeLike,
     isAuthorized,
   } = props;
 
+  const [timerIdChangeLike, setTimerIdChangeLike] = useState(0);
   const history = useHistory();
   const redirectToSignIn = () => {
     history.push(signInUrl);
   };
 
-  /* const repeatChangeLikeRequest = () => {
-    const newLikesState = likesStateOnServer.map((serverLikeState) => {
-      const findEl = articles.find((article) => article.id === serverLikeState.id);
-
-      // объединить фейковые лайки и те которые пришли от сервера в один объект
-      // для удобного сравнения
-      if (findEl) {
-        return {
-          id: findEl.id,
-          slug: findEl.slug,
-          favorited: findEl.favorited,
-          isLikedOnServer: serverLikeState.isFavorited,
-          isRepeatedRequest: true,
-        };
-      }
-      return serverLikeState;
-    });
-
-    const isDiff = newLikesState.some((el) => el.favorited !== el.isLikedOnServer);
-    const likeBody = newLikesState.find((el) => el.favorited !== el.isLikedOnServer);
-
-    console.log(isDiff);
-    console.log(likeBody);
-    if (isDiff) {
-      console.log('повторный запрос');
-      addLike(likeBody);
+  const changeLikeRequest = (articleLikeInfo) => {
+    const { favorited, slug } = articleLikeInfo;
+    if (!favorited) {
+      return addLike(slug);
     }
+    return removeLike(slug);
   };
 
-  useEffect(() => {
-    if (isLikeChangedOnServer) {
-      console.log('повторный запрос');
-      repeatChangeLikeRequest();
-    }
-  }, [likesStateOnServer]); */
-
-  const handleOnLikeArticle = (event, articleLikeInfo) => {
+  const handleOnLikeArticle = async (event, articleLikeInfo) => {
     event.preventDefault();
     event.stopPropagation();
     if (!isAuthorized) {
       redirectToSignIn();
       return false;
     }
+    setTimerIdChangeLike(clearTimeout(timerIdChangeLike));
+    await refreshLikesUI(articleLikeInfo.id);
 
-    const isCurrentLikeRequested = addLikeRequestState.some((el) => el === articleLikeInfo.id);
-    if (isCurrentLikeRequested) {
-      const rejectRequest = { ...articleLikeInfo, isAlreadyRequested: true };
-      // eslint-disable-next-line no-console
-      console.log('отправка запрещена');
-      return addLike(rejectRequest);
-    }
-
-    return addLike(articleLikeInfo);
+    // пользователь может припадочно жать на кнопку лайка
+    // поэтому отправляем лайк на сервер только через полсекунды
+    return setTimerIdChangeLike(setTimeout(() => changeLikeRequest(articleLikeInfo), 500));
   };
 
   const renderArticle = () => articles.map((article) => {
@@ -120,8 +88,6 @@ const Article = (props) => {
       id,
       favorited,
       slug,
-      isAlreadyRequested: false,
-      isRepeatedRequest: false,
     };
 
     return (

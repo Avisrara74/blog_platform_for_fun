@@ -21,6 +21,7 @@ import {
   FormItemTagsTitle,
   FormItemTag,
 } from '../../styled-components';
+import { checkFieldErrors } from '../../API';
 
 const formSubmitButtonStyles = {
   height: 40,
@@ -95,7 +96,12 @@ const CreateArticle = (props) => {
         title, description, body, tagList: tags,
       },
     };
-    createArticle(articleBody, formik);
+
+    try {
+      await createArticle(articleBody);
+    } catch (error) {
+      checkFieldErrors(error.response.data.errors, formik);
+    }
   };
 
   const formik = useFormik({

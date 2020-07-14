@@ -7,17 +7,12 @@ import propTypes from 'prop-types';
 import * as Yup from 'yup';
 import 'antd/dist/antd.css';
 import * as actions from '../../redux/actions/user';
+import { checkFieldErrors } from '../../API';
 
 import {
   Form, FormTitle, FormItem, FormSubmitButtonStyles,
 } from '../../styled-components';
 import { renderErrorMessage } from '../../helper';
-
-const formikInicialValues = {
-  username: '',
-  email: '',
-  image: '',
-};
 
 const formItems = [
   {
@@ -33,41 +28,53 @@ const formItems = [
 
 const formikValidationSchema = Yup.object({
   username: Yup.string()
-    .max(30, 'Your username should be no more than 30 characters!')
-    .required('required'),
+    .max(30, 'Your username should be no more than 30 characters!'),
   email: Yup.string()
-    .email('Invalid email')
-    .required('required'),
+    .email('Invalid email'),
   image: Yup.string()
-    .url('Not correct url')
-    .required('required'),
+    .url('Not correct url'),
 });
 
-const mapStateToProps = (state) => ({ isInputsDisable: state.editUserProfileState === 'requested' });
+const mapStateToProps = (state) => {
+  const { userData } = state;
+  const userDataInitialValues = {
+    email: userData.email,
+    image: userData.userProfileImage,
+    username: userData.username,
+  };
+  return { isInputsDisable: state.editUserProfileState === 'requested', userDataInitialValues };
+};
 
 const actionCreator = {
   editUserProfile: actions.editUserProfile,
 };
 
 const EditProfile = (props) => {
-  const { isInputsDisable, editUserProfile } = props;
+  const { isInputsDisable, editUserProfile, userDataInitialValues } = props;
 
-  const handleOnEditUserProfile = (formik) => {
+  const handleOnEditUserProfile = async (formik) => {
     const { username, email, image } = formik.values;
 
     const userData = {
       user: {
-        username, email, image,
+        username: (username.length === 0) ? userDataInitialValues.username : username,
+        email: (email.length === 0) ? userDataInitialValues.email : email,
+        image: (image.length === 0) ? userDataInitialValues.image : image,
       },
     };
-    editUserProfile(userData, formik);
+
+    try {
+      await editUserProfile(userData);
+    } catch (error) {
+      checkFieldErrors(error.response.data.errors, formik);
+    }
   };
 
   const formik = useFormik({
-    initialValues: formikInicialValues,
+    initialValues: userDataInitialValues,
     validationSchema: formikValidationSchema,
-    onSubmit: () => {
-      handleOnEditUserProfile(formik);
+    onSubmit: async () => {
+      await handleOnEditUserProfile(formik);
     },
   });
 
@@ -113,11 +120,13 @@ const EditProfile = (props) => {
 EditProfile.propTypes = {
   isInputsDisable: propTypes.bool,
   editUserProfile: propTypes.func,
+  userDataInitialValues: propTypes.objectOf(propTypes.object),
 };
 
 EditProfile.defaultProps = {
   isInputsDisable: false,
   editUserProfile: null,
+  userDataInitialValues: {},
 };
 
 export default connect(mapStateToProps, actionCreator)(EditProfile);
